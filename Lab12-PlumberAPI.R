@@ -177,6 +177,8 @@ if (require("plumber")) {
 # STEP 1. The commenting below makes R recognize the code as the definition of
 # an API, i.e., #* comments.
 
+loaded_diabetes_model_lda <- readRDS("./models/saved_diabetes_model_lda.rds")
+
 #* @apiTitle Diabetes Prediction Model API
 
 #* @apiDescription Used to predict whether a patient has diabetes or not.
@@ -185,8 +187,6 @@ if (require("plumber")) {
 #* @param arg_glucose The patient's glucose level.
 
 #* @get /diabetes
-
-loaded_diabetes_model_lda <- readRDS("./models/saved_diabetes_model_lda.rds")
 
 predict_diabetes <-
   function(arg_pregnant, arg_glucose, arg_pressure, arg_triceps, arg_insulin,

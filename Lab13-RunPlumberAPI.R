@@ -1,5 +1,5 @@
 # *****************************************************************************
-# Lab 11: Saving the Model ----
+# Lab 11: Plumber API ----
 #
 # Course Code: BBT4206
 # Course Name: Business Intelligence II
@@ -105,43 +105,7 @@ if (require("languageserver")) {
                    repos = "https://cloud.r-project.org")
 }
 
-# Introduction ----
-# What do you do after you have designed a model that is accurate enough to use?
-# This is a critical question whose answer enables the gap between research and
-# practice to be addressed.
-
-# It is possible to discover the key internal representation of a model found
-# by an algorithm (e.g., the coefficients in a linear model) and use
-# them in a new implementation of the prediction algorithm in another
-# program developed using a programming language other than R.
-
-# This is easier to do for simpler algorithms that use a simple representation,
-# e.g., a linear model, than for algorithms that use more complex
-# representations.
-
-# "caret" provides access to "the best" model from a training run in the
-# "finalModel" variable.
-# The "predict()" function in the "caret" package automatically uses the
-# "finalModel" to make predictions on a new dataset. The data provided as the
-# "new dataset" can be stored in a separate file and loaded as a data frame.
-
-# STEP 1. Install and Load the Required Packages ----
-## caret ----
-if (require("caret")) {
-  require("caret")
-} else {
-  install.packages("caret", dependencies = TRUE,
-                   repos = "https://cloud.r-project.org")
-}
-
-## mlbench ----
-if (require("mlbench")) {
-  require("mlbench")
-} else {
-  install.packages("mlbench", dependencies = TRUE,
-                   repos = "https://cloud.r-project.org")
-}
-
+# STEP 1. Install and load the required packages ----
 ## plumber ----
 if (require("plumber")) {
   require("plumber")
@@ -150,51 +114,17 @@ if (require("plumber")) {
                    repos = "https://cloud.r-project.org")
 }
 
-# STEP 2. Load the Dataset ----
-data(PimaIndiansDiabetes)
+# STEP 2. Process a Plumber API ----
+# This allows us to process a plumber API
+api <- plumber::plumb("Lab12-PlumberAPI.R")
 
-# STEP 3. Train the Model ----
-# create an 80%/20% data split for training and testing datasets respectively
-set.seed(9)
-train_index <- createDataPartition(PimaIndiansDiabetes$diabetes,
-                                   p = 0.80, list = FALSE)
-diabetes_training <- PimaIndiansDiabetes[train_index, ]
-diabetes_testing <- PimaIndiansDiabetes[-train_index, ]
+# STEP 3. Run the API on a specific port ----
+# Specify a constant localhost port to use
+api$run(host = "127.0.0.1", port = 5022)
 
-set.seed(9)
-train_control <- trainControl(method = "cv", number = 10)
-diabetes_model_lda <- train(diabetes ~ ., data = diabetes_training,
-                            method = "lda", metric = "Accuracy",
-                            trControl = train_control)
-
-# We print a summary of what caret has done
-print(diabetes_model_lda)
-
-# We then print the details of the model that has been created
-print(diabetes_model_lda$finalModel)
-
-# STEP 4. Test the Model ----
-# We can test the model
-set.seed(9)
-predictions <- predict(diabetes_model_lda, newdata = diabetes_testing)
-confusionMatrix(predictions, diabetes_testing$diabetes)
-
-# STEP 5. Save and Load your Model ----
-# Saving a model into a file allows you to load it later and use it to make
-# predictions. Saved models can be loaded by calling the `readRDS()` function
-
-saveRDS(diabetes_model_lda, "./models/saved_diabetes_model_lda.rds")
-# The saved model can then be loaded later as follows:
-loaded_diabetes_model_lda <- readRDS("./models/saved_diabetes_model_lda.rds")
-print(loaded_diabetes_model_lda)
-
-predictions_with_loaded_model <-
-  predict(loaded_diabetes_model_lda, newdata = diabetes_testing)
-confusionMatrix(predictions_with_loaded_model, diabetes_testing$diabetes)
-
-# [OPTIONAL] **Deinitialization: Create a snapshot of the R environment ----
-# Lastly, as a follow-up to the initialization step, record the packages
-# installed and their sources in the lockfile so that other team-members can
-# use renv::restore() to re-install the same package version in their local
-# machine during their initialization step.
-# renv::snapshot() # nolint
+# STEP 4. Test the API ----
+# We test the API using the following values:
+# for the arguments:
+# pregnant, glucose, pressure, triceps, insulin, mass, pedigree, age
+# 6, 148, 72, 35, 0, 33.6, 0.627, and 50 respectively should be "positive"
+# 1, 85, 66, 29, 0, 26.6, 0.351, and 31 respectively should be "negative"
